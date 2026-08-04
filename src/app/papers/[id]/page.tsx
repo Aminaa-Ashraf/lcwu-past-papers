@@ -15,18 +15,18 @@ export default async function PaperPage({ params }: Props) {
   if (!paper) notFound();
 
   return (
-    <div className="mx-auto max-w-272 px-5 py-12 sm:py-16">
+    <div className="page-wrap">
       {paper.course ? (
         <Link
           href={`/courses/${paper.course.slug}`}
-          className="text-sm font-medium text-muted transition-colors hover:text-accent"
+          className="hover-text-accent text-sm font-medium text-muted transition-colors"
         >
           ← {paper.course.name}
         </Link>
       ) : (
         <Link
           href="/"
-          className="text-sm font-medium text-muted transition-colors hover:text-accent"
+          className="hover-text-accent text-sm font-medium text-muted transition-colors"
         >
           ← All courses
         </Link>
@@ -34,7 +34,7 @@ export default async function PaperPage({ params }: Props) {
 
       <section className="mt-7 flex flex-col gap-6 border-b border-line pb-8 sm:flex-row sm:items-end sm:justify-between">
         <div className="max-w-2xl">
-          <p className="text-sm font-semibold uppercase tracking-[0.16em] text-accent">
+          <p className="tracking-label text-sm font-semibold uppercase text-accent">
             {paper.year} · {paper.examType}
           </p>
           <h1 className="font-display mt-3 text-4xl font-semibold leading-tight text-ink sm:text-5xl">
@@ -47,12 +47,8 @@ export default async function PaperPage({ params }: Props) {
         </a>
       </section>
 
-      <div className="mt-10 overflow-hidden border border-line bg-paper shadow-panel">
-        <iframe
-          title={paper.title}
-          src={paper.fileUrl}
-          className="h-[75vh] w-full bg-white"
-        />
+      <div className="shadow-panel mt-10 overflow-hidden border border-line bg-paper">
+        <iframe title={paper.title} src={paper.fileUrl} className="pdf-frame" />
       </div>
     </div>
   );

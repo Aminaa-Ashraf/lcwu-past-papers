@@ -37,10 +37,10 @@ export default async function CoursePage({ params }: Props) {
   const byYear = groupByYear(papers);
 
   return (
-    <div className="mx-auto max-w-272 px-5 py-12 sm:py-16">
+    <div className="page-wrap">
       <Link
         href="/#courses"
-        className="text-sm font-medium text-muted transition-colors hover:text-accent"
+        className="hover-text-accent text-sm font-medium text-muted transition-colors"
       >
         ← All courses
       </Link>
@@ -68,7 +68,7 @@ export default async function CoursePage({ params }: Props) {
                 {year}
                 <span className="year-block__label">exam year</span>
               </h2>
-              <ul className="mt-3 overflow-hidden border border-line bg-paper shadow-panel">
+              <ul className="shadow-panel mt-3 overflow-hidden border border-line bg-paper">
                 {list.map((paper) => (
                   <li
                     key={paper.id}
@@ -76,10 +76,10 @@ export default async function CoursePage({ params }: Props) {
                   >
                     <Link
                       href={`/papers/${paper.id}`}
-                      className="group flex flex-col gap-1 px-5 py-5 transition-colors hover:bg-accent-soft sm:flex-row sm:items-baseline sm:justify-between"
+                      className="hover-bg-accent-soft group flex flex-col gap-1 px-5 py-5 transition-colors sm:flex-row sm:items-baseline sm:justify-between"
                     >
                       <div>
-                        <p className="text-lg font-medium text-ink group-hover:text-accent">
+                        <p className="group-hover-text-accent text-lg font-medium text-ink">
                           {paper.title}
                         </p>
                         <p className="mt-1 text-sm text-muted">

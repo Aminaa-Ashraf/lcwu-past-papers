@@ -48,6 +48,68 @@ a {
   font-family: var(--font-display), Georgia, serif;
 }
 
+.text-ink {
+  color: var(--ink);
+}
+
+.text-muted {
+  color: var(--muted);
+}
+
+.text-accent {
+  color: var(--accent);
+}
+
+.bg-paper {
+  background-color: var(--paper);
+}
+
+.bg-accent-soft {
+  background-color: var(--accent-soft);
+}
+
+.border-line {
+  border-color: var(--line);
+}
+
+.shadow-panel {
+  box-shadow: var(--shadow);
+}
+
+.hover-text-accent:hover {
+  color: var(--accent);
+}
+
+.group:hover .group-hover-text-accent {
+  color: var(--accent);
+}
+
+.hover-bg-accent-soft:hover {
+  background-color: var(--accent-soft);
+}
+
+.tracking-label {
+  letter-spacing: 0.16em;
+}
+
+.pdf-frame {
+  height: 75vh;
+  width: 100%;
+  background: #fff;
+}
+
+.page-wrap {
+  margin-inline: auto;
+  max-width: 68rem;
+  padding: 3rem 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .page-wrap {
+    padding-block: 4rem;
+  }
+}
+
 .btn-primary {
   display: inline-flex;
   height: 2.85rem;
@@ -595,6 +657,11 @@ a {
     0 14px 32px -22px rgba(61, 14, 11, 0.4);
 }
 
+.course-search input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .course-list {
   display: grid;
   gap: 1rem;
@@ -847,6 +914,12 @@ a {
 .form-field select:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(94, 25, 20, 0.08);
+}
+
+.form-field input:focus-visible,
+.form-field select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 @keyframes fade-up {

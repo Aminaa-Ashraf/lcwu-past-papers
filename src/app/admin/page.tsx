@@ -9,7 +9,7 @@ export default async function AdminPage() {
   return (
     <div className="mx-auto max-w-3xl px-5 py-12 sm:py-16">
       <section className="max-w-2xl">
-        <p className="text-sm font-semibold uppercase tracking-[0.16em] text-accent">
+        <p className="tracking-label text-sm font-semibold uppercase text-accent">
           Admin
         </p>
         <h1 className="font-display mt-3 text-4xl font-semibold text-ink">
@@ -17,7 +17,7 @@ export default async function AdminPage() {
         </h1>
       </section>
 
-      <section className="mt-10 border border-line bg-paper p-6 shadow-panel">
+      <section className="shadow-panel mt-10 border border-line bg-paper p-6">
         <AddPaperForm
           courses={courses.map((c) => ({
             id: c.id,
