@@ -1,21 +1,23 @@
 import { getCourses } from "@/lib/data";
 import { AddPaperForm } from "@/components/admin/AddPaperForm";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminPage() {
   const courses = await getCourses();
 
   return (
     <div className="mx-auto max-w-3xl px-5 py-12 sm:py-16">
       <section className="max-w-2xl">
-        <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[var(--accent)]">
+        <p className="text-sm font-semibold uppercase tracking-[0.16em] text-accent">
           Admin
         </p>
-        <h1 className="mt-3 font-[family-name:var(--font-display)] text-4xl font-semibold text-[var(--ink)]">
+        <h1 className="font-display mt-3 text-4xl font-semibold text-ink">
           Add a paper
         </h1>
       </section>
 
-      <section className="mt-10 border border-[var(--line)] bg-[var(--paper)] p-6 shadow-[var(--shadow)]">
+      <section className="mt-10 border border-line bg-paper p-6 shadow-panel">
         <AddPaperForm
           courses={courses.map((c) => ({
             id: c.id,

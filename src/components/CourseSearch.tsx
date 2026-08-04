@@ -30,7 +30,7 @@ export function CourseSearch({ courses }: { courses: Course[] }) {
       </div>
 
       {filtered.length === 0 ? (
-        <p className="text-[var(--muted)]">No courses match “{query}”.</p>
+        <p className="text-muted">No courses match “{query}”.</p>
       ) : (
         <div className="course-list">
           {filtered.map((course) => (

@@ -111,7 +111,7 @@ export function AddPaperForm({ courses }: { courses: CourseOption[] }) {
       </button>
 
       {message ? (
-        <p className={`text-sm ${ok ? "text-[var(--accent)]" : "text-red-600"}`}>
+        <p className={`text-sm ${ok ? "text-accent" : "text-red-600"}`}>
           {message}
         </p>
       ) : null}

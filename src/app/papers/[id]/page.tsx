@@ -15,29 +15,29 @@ export default async function PaperPage({ params }: Props) {
   if (!paper) notFound();
 
   return (
-    <div className="mx-auto max-w-[68rem] px-5 py-12 sm:py-16">
+    <div className="mx-auto max-w-272 px-5 py-12 sm:py-16">
       {paper.course ? (
         <Link
           href={`/courses/${paper.course.slug}`}
-          className="text-sm font-medium text-[var(--muted)] transition-colors hover:text-[var(--accent)]"
+          className="text-sm font-medium text-muted transition-colors hover:text-accent"
         >
           ← {paper.course.name}
         </Link>
       ) : (
         <Link
           href="/"
-          className="text-sm font-medium text-[var(--muted)] transition-colors hover:text-[var(--accent)]"
+          className="text-sm font-medium text-muted transition-colors hover:text-accent"
         >
           ← All courses
         </Link>
       )}
 
-      <section className="mt-7 flex flex-col gap-6 border-b border-[var(--line)] pb-8 sm:flex-row sm:items-end sm:justify-between">
+      <section className="mt-7 flex flex-col gap-6 border-b border-line pb-8 sm:flex-row sm:items-end sm:justify-between">
         <div className="max-w-2xl">
-          <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[var(--accent)]">
+          <p className="text-sm font-semibold uppercase tracking-[0.16em] text-accent">
             {paper.year} · {paper.examType}
           </p>
-          <h1 className="mt-3 font-[family-name:var(--font-display)] text-4xl font-semibold leading-tight text-[var(--ink)] sm:text-5xl">
+          <h1 className="font-display mt-3 text-4xl font-semibold leading-tight text-ink sm:text-5xl">
             {paper.title}
           </h1>
         </div>
@@ -47,7 +47,7 @@ export default async function PaperPage({ params }: Props) {
         </a>
       </section>
 
-      <div className="mt-10 overflow-hidden border border-[var(--line)] bg-[var(--paper)] shadow-[var(--shadow)]">
+      <div className="mt-10 overflow-hidden border border-line bg-paper shadow-panel">
         <iframe
           title={paper.title}
           src={paper.fileUrl}

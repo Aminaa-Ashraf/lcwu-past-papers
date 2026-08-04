@@ -37,20 +37,20 @@ export default async function CoursePage({ params }: Props) {
   const byYear = groupByYear(papers);
 
   return (
-    <div className="mx-auto max-w-[68rem] px-5 py-12 sm:py-16">
+    <div className="mx-auto max-w-272 px-5 py-12 sm:py-16">
       <Link
         href="/#courses"
-        className="text-sm font-medium text-[var(--muted)] transition-colors hover:text-[var(--accent)]"
+        className="text-sm font-medium text-muted transition-colors hover:text-accent"
       >
         ← All courses
       </Link>
 
-      <section className="mt-7 max-w-2xl border-b border-[var(--line)] pb-8">
+      <section className="mt-7 max-w-2xl border-b border-line pb-8">
         <span className="course-card__code">{course.code}</span>
-        <h1 className="mt-4 font-[family-name:var(--font-display)] text-4xl font-semibold leading-tight text-[var(--ink)] sm:text-5xl">
+        <h1 className="font-display mt-4 text-4xl font-semibold leading-tight text-ink sm:text-5xl">
           {course.name}
         </h1>
-        <p className="mt-3 text-[var(--muted)]">
+        <p className="mt-3 text-muted">
           {papers.length} {papers.length === 1 ? "paper" : "papers"}
           {byYear.length > 0
             ? ` · years ${byYear.map(([y]) => y).join(", ")}`
@@ -59,9 +59,7 @@ export default async function CoursePage({ params }: Props) {
       </section>
 
       {papers.length === 0 ? (
-        <p className="mt-14 text-[var(--muted)]">
-          No papers for this course yet.
-        </p>
+        <p className="mt-14 text-muted">No papers for this course yet.</p>
       ) : (
         <div className="mt-10 space-y-10">
           {byYear.map(([year, list]) => (
@@ -70,25 +68,25 @@ export default async function CoursePage({ params }: Props) {
                 {year}
                 <span className="year-block__label">exam year</span>
               </h2>
-              <ul className="mt-3 overflow-hidden border border-[var(--line)] bg-[var(--paper)] shadow-[var(--shadow)]">
+              <ul className="mt-3 overflow-hidden border border-line bg-paper shadow-panel">
                 {list.map((paper) => (
                   <li
                     key={paper.id}
-                    className="border-b border-[var(--line)] last:border-b-0"
+                    className="border-b border-line last:border-b-0"
                   >
                     <Link
                       href={`/papers/${paper.id}`}
-                      className="group flex flex-col gap-1 px-5 py-5 transition-colors hover:bg-[var(--accent-soft)] sm:flex-row sm:items-baseline sm:justify-between"
+                      className="group flex flex-col gap-1 px-5 py-5 transition-colors hover:bg-accent-soft sm:flex-row sm:items-baseline sm:justify-between"
                     >
                       <div>
-                        <p className="text-lg font-medium text-[var(--ink)] group-hover:text-[var(--accent)]">
+                        <p className="text-lg font-medium text-ink group-hover:text-accent">
                           {paper.title}
                         </p>
-                        <p className="mt-1 text-sm text-[var(--muted)]">
+                        <p className="mt-1 text-sm text-muted">
                           {examLabel(paper.examType)} · {year}
                         </p>
                       </div>
-                      <span className="text-sm font-semibold text-[var(--accent)]">
+                      <span className="text-sm font-semibold text-accent">
                         View PDF →
                       </span>
                     </Link>

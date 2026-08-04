@@ -105,7 +105,8 @@ function isRetryableDbError(error: unknown): boolean {
     code === "PROTOCOL_CONNECTION_LOST" ||
     code === "PROTOCOL_ENQUEUE_AFTER_FATAL_ERROR" ||
     message.includes("ECONNRESET") ||
-    message.includes("Connection lost")
+    message.includes("Connection lost") ||
+    message.includes("Pool is closed")
   );
 }
 

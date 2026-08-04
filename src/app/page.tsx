@@ -1,6 +1,8 @@
 import { CourseSearch } from "@/components/CourseSearch";
 import { getCourses } from "@/lib/data";
 
+export const dynamic = "force-dynamic";
+
 export default async function HomePage() {
   const courses = await getCourses();
   const totalPapers = courses.reduce((sum, c) => sum + (c.paperCount ?? 0), 0);
@@ -83,7 +85,7 @@ export default async function HomePage() {
         </div>
 
         {courses.length === 0 ? (
-          <p className="text-[color:var(--muted)]">No courses yet.</p>
+          <p className="text-muted">No courses yet.</p>
         ) : (
           <CourseSearch courses={courses} />
         )}

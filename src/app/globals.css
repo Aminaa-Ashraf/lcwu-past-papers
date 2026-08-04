@@ -18,7 +18,17 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-deep: var(--accent-deep);
+  --color-accent-soft: var(--accent-soft);
+  --color-gold: var(--gold);
+  --color-gold-bright: var(--gold-bright);
+  --color-line: var(--line);
   --font-sans: var(--font-body);
+  --shadow-panel: var(--shadow);
 }
 
 body {
@@ -32,6 +42,10 @@ body {
 
 a {
   text-decoration: none;
+}
+
+.font-display {
+  font-family: var(--font-display), Georgia, serif;
 }
 
 .btn-primary {
