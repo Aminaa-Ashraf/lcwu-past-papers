@@ -22,44 +22,27 @@ Past papers for LCWU Computer Science (BSCS) — browse by course and exam year,
 | Database | MySQL (`mysql2`) |
 | Hosting | Vercel-ready |
 
-## Quick start
+## Run locally
 
 ```bash
 npm install
 cp .env.local.example .env.local
-# set DATABASE_URL and ADMIN_PASSWORD in .env.local
 npm run db:setup
 npm run db:seed-courses
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Copy `.env.local.example` into `.env.local` and fill in your own database and admin settings (that file stays on your machine — it is not committed).
 
-## Routes
+Then open [http://localhost:3000](http://localhost:3000).
 
-| Route | Purpose |
-|-------|---------|
+## Pages
+
+| Path | Purpose |
+|------|---------|
 | `/` | Search and browse courses |
 | `/courses/[slug]` | Papers for one course, by year |
-| `/admin` | Upload a PDF (admin password) |
-| `/api/health` | Database / app health check |
-
-## Environment
-
-| Variable | Purpose |
-|----------|---------|
-| `DATABASE_URL` | MySQL URL |
-| `ADMIN_PASSWORD` | Password for `/admin` |
-| `USE_MOCK_DATA` | Set `false` for real DB |
-| `DATABASE_SSL` | Usually `true` for cloud MySQL |
-
-## Scripts
-
-```bash
-npm run db:setup          # create tables
-npm run db:seed-courses   # seed all 46 BSCS courses
-npm run db:seed-real      # optional sample paper rows
-```
+| `/admin` | Upload a PDF |
 
 ## License
 
