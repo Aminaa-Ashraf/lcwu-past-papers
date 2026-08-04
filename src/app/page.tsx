@@ -83,7 +83,7 @@ export default async function HomePage() {
         </div>
 
         {courses.length === 0 ? (
-          <p className="text-(--muted)">No courses yet.</p>
+          <p className="text-[color:var(--muted)]">No courses yet.</p>
         ) : (
           <CourseSearch courses={courses} />
         )}

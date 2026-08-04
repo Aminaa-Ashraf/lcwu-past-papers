@@ -18,7 +18,7 @@ const body = Figtree({
 export const metadata: Metadata = {
   title: "LCWU Past Papers",
   description:
-    "LCWU Computer Science past papers — browse by semester and course.",
+    "LCWU Computer Science past papers — browse by course and exam year.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

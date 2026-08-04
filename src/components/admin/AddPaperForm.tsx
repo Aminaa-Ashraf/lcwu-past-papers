@@ -18,7 +18,6 @@ export function AddPaperForm({ courses }: { courses: CourseOption[] }) {
   return (
     <form
       className="space-y-4"
-      encType="multipart/form-data"
       action={(formData) => {
         startTransition(async () => {
           const result = await addPaperAction(formData);
