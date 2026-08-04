@@ -25,8 +25,8 @@ export default async function HomePage() {
               LCWU Past Papers
             </h1>
             <p className="hero__lead animate-fade-up-delay-2">
-              A calm archive for Computer Science papers — find a course, open
-              the year, download the PDF.
+              Past papers for LCWU Computer Science. Pick a course, open the
+              year, and download the PDF.
             </p>
             <div className="hero__actions animate-fade-up-delay-2">
               <a href="#courses" className="btn-primary">
@@ -44,19 +44,19 @@ export default async function HomePage() {
             <div className="hero__stats">
               <div className="hero__stat">
                 <p className="hero__stat-value">{courses.length}</p>
-                <p className="hero__stat-label">Courses listed</p>
+                <p className="hero__stat-label">Courses</p>
               </div>
               <div className="hero__stat-divider" aria-hidden />
               <div className="hero__stat">
                 <p className="hero__stat-value">{totalPapers}</p>
-                <p className="hero__stat-label">Papers online</p>
+                <p className="hero__stat-label">Papers</p>
               </div>
             </div>
 
             <div className="hero__coverage">
               <div className="hero__coverage-meta">
                 <span>
-                  {coursesWithPapers}/{courses.length} with papers
+                  {coursesWithPapers}/{courses.length} have papers
                 </span>
                 <span>{coveragePct}%</span>
               </div>
@@ -67,7 +67,7 @@ export default async function HomePage() {
                 />
               </div>
               <p className="hero__panel-note">
-                Find by course and year — more papers anytime from Admin.
+                Sorted by course and exam year. New PDFs go up from Admin.
               </p>
             </div>
           </aside>
@@ -79,7 +79,7 @@ export default async function HomePage() {
           <div>
             <h2 className="course-section__title">All courses</h2>
             <p className="course-section__meta mt-1">
-              Search, then open a subject to see papers by year
+              Search by name or code, then open a course
             </p>
           </div>
         </div>

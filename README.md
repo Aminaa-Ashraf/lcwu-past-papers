@@ -1,17 +1,33 @@
 # LCWU Past Papers
 
-Browse Computer Science past papers by course and exam year — download PDFs, upload new ones from Admin.
+Past papers for LCWU Computer Science (BSCS) — browse by course and exam year, download PDFs, upload new ones from Admin.
 
-Built for LCWU BSCS (2023–27 scheme) · 46 courses · Next.js + MySQL.
+46 courses from the 2023–27 scheme · Next.js + MySQL
 
 ---
+
+## What it does
+
+- List all BSCS courses with paper counts and years
+- Open a course and browse papers by exam year
+- Preview and download PDFs
+- Upload new papers from a password-protected Admin page
+
+## Stack
+
+| Layer | Choice |
+|-------|--------|
+| App | Next.js 16 (App Router), React 19 |
+| UI | Tailwind CSS 4 |
+| Database | MySQL (`mysql2`) |
+| Hosting | Vercel-ready |
 
 ## Quick start
 
 ```bash
 npm install
 cp .env.local.example .env.local
-# edit .env.local — DATABASE_URL + ADMIN_PASSWORD
+# set DATABASE_URL and ADMIN_PASSWORD in .env.local
 npm run db:setup
 npm run db:seed-courses
 npm run dev
@@ -19,32 +35,32 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-| Route | What it does |
-|-------|----------------|
-| `/` | Search & browse all courses |
+## Routes
+
+| Route | Purpose |
+|-------|---------|
+| `/` | Search and browse courses |
 | `/courses/[slug]` | Papers for one course, by year |
-| `/admin` | Upload a PDF (password protected) |
+| `/admin` | Upload a PDF (admin password) |
+| `/api/health` | Database / app health check |
 
 ## Environment
 
-Copy `.env.local.example` → `.env.local`:
-
-- `DATABASE_URL` — Aiven (or any) MySQL URL  
-- `ADMIN_PASSWORD` — password for `/admin`  
-- `USE_MOCK_DATA=false` — use the real database  
+| Variable | Purpose |
+|----------|---------|
+| `DATABASE_URL` | MySQL URL |
+| `ADMIN_PASSWORD` | Password for `/admin` |
+| `USE_MOCK_DATA` | Set `false` for real DB |
+| `DATABASE_SSL` | Usually `true` for cloud MySQL |
 
 ## Scripts
 
 ```bash
 npm run db:setup          # create tables
 npm run db:seed-courses   # seed all 46 BSCS courses
-npm run db:seed-real      # seed sample paper rows (optional)
+npm run db:seed-real      # optional sample paper rows
 ```
 
-## Stack
-
-Next.js 16 · React 19 · Tailwind CSS 4 · MySQL (`mysql2`) · Vercel-ready
-
----
+## License
 
 [MIT](LICENSE) · [@Aminaa-Ashraf](https://github.com/Aminaa-Ashraf)

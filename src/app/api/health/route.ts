@@ -2,16 +2,14 @@ import { NextResponse } from "next/server";
 import { isDatabaseConfigured, testConnection } from "@/lib/db";
 
 /**
- * GET /api/health
- * Confirms whether the app is using mock data or a live MySQL connection.
+ * GET /api/health — quick check that the app / database are reachable.
  */
 export async function GET() {
   if (!isDatabaseConfigured()) {
     return NextResponse.json({
       ok: true,
       mode: "mock",
-      message:
-        "Using dummy data. Set DATABASE_URL and USE_MOCK_DATA=false to connect Aiven.",
+      message: "Running without DATABASE_URL (sample data mode).",
     });
   }
 
@@ -20,7 +18,7 @@ export async function GET() {
     return NextResponse.json({
       ok: true,
       mode: "mysql",
-      message: "SELECT 1 succeeded — Aiven MySQL is connected.",
+      message: "Database connection OK.",
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";

@@ -1,7 +1,7 @@
 import mysql, { type Pool, type QueryResult, type RowDataPacket } from "mysql2/promise";
 
 /**
- * Aiven MySQL pool for Next.js.
+ * MySQL connection pool for Next.js.
  * Free-tier connections often drop idle — we retry once after reset.
  */
 
@@ -110,7 +110,7 @@ function isRetryableDbError(error: unknown): boolean {
   );
 }
 
-/** Run a query; on dropped Aiven connection, recreate pool and retry once. */
+/** Run a query; on a dropped connection, recreate the pool and retry once. */
 export async function dbQuery<T extends QueryResult = RowDataPacket[]>(
   sql: string,
   params?: unknown[]

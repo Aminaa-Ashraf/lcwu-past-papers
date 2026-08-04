@@ -3,8 +3,8 @@ import path from "path";
 import type { ExamType, Paper, PaperStatus, Teacher } from "./types";
 
 /**
- * Local JSON store for learning mode (no Aiven yet).
- * Works on your laptop. On Vercel, use Aiven MySQL instead.
+ * Local JSON store when DATABASE_URL is not set.
+ * Fine for laptop demos; use MySQL for production.
  */
 
 const STORE_PATH = path.join(process.cwd(), "data", "local-store.json");
