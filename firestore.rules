@@ -1,0 +1,38 @@
+rules_version = '2';
+
+// Assumed data model
+// Collection: courses/{slug}
+//   id: number, name, code, slug, semester, department
+// Collection: papers/{id}
+//   id: number, courseId, title, year, examType, fileUrl, status
+// Collection: meta/counters
+//   nextPaperId: number
+//
+// Public site reads courses/papers without login.
+// Writes happen only via Firebase Admin SDK (bypasses these rules).
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isApprovedPaper() {
+      return resource.data.status == 'approved';
+    }
+
+    match /courses/{slug} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /papers/{paperId} {
+      allow read: if isApprovedPaper();
+      allow write: if false;
+    }
+
+    match /meta/{docId} {
+      allow read, write: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -3,7 +3,7 @@ import path from "path";
 import type { ExamType, Paper, PaperStatus, Teacher } from "./types";
 
 /**
- * Local JSON store when DATABASE_URL is not set.
+ * Local JSON store when Firebase is not configured.
  * Fine for laptop demos; use MySQL for production.
  */
 

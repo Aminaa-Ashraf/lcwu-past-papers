@@ -4,12 +4,12 @@ import { randomBytes } from "crypto";
 import { promises as fs } from "fs";
 import path from "path";
 import { revalidatePath } from "next/cache";
-import { dbQuery, isDatabaseConfigured } from "./db";
+import { addFirebasePaper } from "./data";
+import { getBucket, isFirebaseConfigured } from "./firebase-admin";
 import { addLocalPaper } from "./local-store";
 import type { ExamType } from "./types";
 
-const MAX_PDF_BYTES = 10 * 1024 * 1024; // 10 MB
-const UPLOAD_DIR = path.join(process.cwd(), "public", "papers", "uploads");
+const MAX_PDF_BYTES = 10 * 1024 * 1024;
 
 function assertAdmin(password: string) {
   const expected = process.env.ADMIN_PASSWORD;
@@ -42,17 +42,33 @@ async function savePdfUpload(file: File): Promise<string> {
   }
 
   const bytes = Buffer.from(await file.arrayBuffer());
-  // Basic PDF magic check
   if (bytes.subarray(0, 4).toString("utf8") !== "%PDF") {
     throw new Error("Invalid PDF file.");
   }
 
-  await fs.mkdir(UPLOAD_DIR, { recursive: true });
   const base = sanitizeBaseName(file.name) || "paper";
   const stamp = randomBytes(4).toString("hex");
   const filename = `${base}-${stamp}.pdf`;
-  await fs.writeFile(path.join(UPLOAD_DIR, filename), bytes);
-  return `/papers/uploads/${filename}`;
+
+  if (!isFirebaseConfigured()) {
+    const uploadDir = path.join(process.cwd(), "public", "papers", "uploads");
+    await fs.mkdir(uploadDir, { recursive: true });
+    await fs.writeFile(path.join(uploadDir, filename), bytes);
+    return `/papers/uploads/${filename}`;
+  }
+
+  const objectPath = `papers/uploads/${filename}`;
+  const bucket = getBucket();
+  const object = bucket.file(objectPath);
+  await object.save(bytes, {
+    contentType: "application/pdf",
+    resumable: false,
+    metadata: {
+      cacheControl: "public, max-age=31536000",
+    },
+  });
+  await object.makePublic();
+  return `https://storage.googleapis.com/${bucket.name}/${objectPath}`;
 }
 
 export type ActionResult =
@@ -82,7 +98,7 @@ export async function addPaperAction(formData: FormData): Promise<ActionResult> 
 
     const fileUrl = await savePdfUpload(pdf);
 
-    if (!isDatabaseConfigured()) {
+    if (!isFirebaseConfigured()) {
       await addLocalPaper({
         courseId,
         title,
@@ -94,12 +110,7 @@ export async function addPaperAction(formData: FormData): Promise<ActionResult> 
         status: "approved",
       });
     } else {
-      await dbQuery(
-        `INSERT INTO papers
-          (course_id, title, year, exam_type, teacher_id, teacher, file_url, status)
-         VALUES (?, ?, ?, ?, NULL, NULL, ?, 'approved')`,
-        [courseId, title, year, examType, fileUrl]
-      );
+      await addFirebasePaper({ courseId, title, year, examType, fileUrl });
     }
 
     revalidatePath("/", "layout");

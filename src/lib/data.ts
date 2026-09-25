@@ -1,69 +1,56 @@
-import type { RowDataPacket } from "mysql2/promise";
-import { dbQuery, isDatabaseConfigured } from "./db";
 import { getLocalPapers, getLocalTeachers } from "./local-store";
 import { mockCourses, mockPapers, mockTeachers } from "./mock-data";
+import { getDb, isFirebaseConfigured } from "./firebase-admin";
 import type { Course, ExamType, Paper, PaperStatus, Teacher } from "./types";
 
-type CourseRow = RowDataPacket & {
+type CourseDoc = {
   id: number;
   name: string;
   code: string;
   slug: string;
   semester: number;
   department: string;
-  paper_count?: number;
-  years?: string | null;
 };
 
-type PaperRow = RowDataPacket & {
+type PaperDoc = {
   id: number;
-  course_id: number;
+  courseId: number;
   title: string;
   year: number;
-  exam_type: ExamType;
-  teacher_id: number | null;
+  examType: ExamType;
+  teacherId: number | null;
   teacher: string | null;
-  file_url: string;
+  fileUrl: string;
   status: PaperStatus;
 };
 
-type TeacherRow = RowDataPacket & {
-  id: number;
-  name: string;
-};
-
-function parseYears(value: string | null | undefined): number[] {
-  if (!value) return [];
-  return value
-    .split(",")
-    .map((y) => Number(y.trim()))
-    .filter((y) => Number.isFinite(y));
-}
-
-function mapCourse(row: CourseRow): Course {
+function mapCourse(
+  data: CourseDoc,
+  extras?: { paperCount?: number; years?: number[] }
+): Course {
   return {
-    id: row.id,
-    name: row.name,
-    code: row.code,
-    slug: row.slug,
-    semester: row.semester,
-    department: row.department,
-    paperCount: row.paper_count,
-    years: parseYears(row.years),
+    id: data.id,
+    name: data.name,
+    code: data.code,
+    slug: data.slug,
+    semester: data.semester,
+    department: data.department,
+    paperCount: extras?.paperCount,
+    years: extras?.years,
   };
 }
 
-function mapPaper(row: PaperRow): Paper {
+function mapPaper(data: PaperDoc): Paper {
   return {
-    id: row.id,
-    courseId: row.course_id,
-    title: row.title,
-    year: row.year,
-    examType: row.exam_type,
-    teacherId: row.teacher_id,
-    teacher: row.teacher,
-    fileUrl: row.file_url,
-    status: row.status,
+    id: data.id,
+    courseId: data.courseId,
+    title: data.title,
+    year: data.year,
+    examType: data.examType,
+    teacherId: data.teacherId ?? null,
+    teacher: data.teacher ?? null,
+    fileUrl: data.fileUrl,
+    status: data.status,
   };
 }
 
@@ -79,30 +66,6 @@ async function getMockTeachersMerged(): Promise<Teacher[]> {
     byName.set(t.name.toLowerCase(), t);
   }
   return [...byName.values()].sort((a, b) => a.name.localeCompare(b.name));
-}
-
-async function withDbFallback<T>(
-  dbFn: () => Promise<T>,
-  fallbackFn: () => Promise<T>
-): Promise<T> {
-  if (!isDatabaseConfigured()) {
-    return fallbackFn();
-  }
-  try {
-    return await dbFn();
-  } catch (error) {
-    console.error("Database unavailable, using local data:", error);
-    return fallbackFn();
-  }
-}
-
-export async function getTeachers(): Promise<Teacher[]> {
-  return withDbFallback(async () => {
-    const [rows] = await dbQuery<TeacherRow[]>(
-      `SELECT id, name FROM teachers ORDER BY name ASC`
-    );
-    return rows.map((r) => ({ id: r.id, name: r.name }));
-  }, getMockTeachersMerged);
 }
 
 async function getLocalCourses(): Promise<Course[]> {
@@ -124,45 +87,72 @@ async function getLocalCourses(): Promise<Course[]> {
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
+async function withFirebaseFallback<T>(
+  firebaseFn: () => Promise<T>,
+  fallbackFn: () => Promise<T>
+): Promise<T> {
+  if (!isFirebaseConfigured()) {
+    return fallbackFn();
+  }
+  try {
+    return await firebaseFn();
+  } catch (error) {
+    console.error("Firebase unavailable, using local data:", error);
+    return fallbackFn();
+  }
+}
+
+export async function getTeachers(): Promise<Teacher[]> {
+  return getMockTeachersMerged();
+}
+
 export async function getCourses(): Promise<Course[]> {
-  return withDbFallback(async () => {
-    const [rows] = await dbQuery<CourseRow[]>(
-      `SELECT c.*,
-              COUNT(p.id) AS paper_count,
-              GROUP_CONCAT(DISTINCT p.year ORDER BY p.year DESC) AS years
-       FROM courses c
-       LEFT JOIN papers p
-         ON p.course_id = c.id AND p.status = 'approved'
-       GROUP BY c.id
-       ORDER BY c.name ASC`
-    );
-    return rows.map(mapCourse);
+  return withFirebaseFallback(async () => {
+    const db = getDb();
+    const [courseSnap, paperSnap] = await Promise.all([
+      db.collection("courses").get(),
+      db.collection("papers").where("status", "==", "approved").get(),
+    ]);
+
+    const papers = paperSnap.docs.map((d) => d.data() as PaperDoc);
+    return courseSnap.docs
+      .map((doc) => {
+        const course = doc.data() as CourseDoc;
+        const coursePapers = papers.filter((p) => p.courseId === course.id);
+        const years = [...new Set(coursePapers.map((p) => p.year))].sort(
+          (a, b) => b - a
+        );
+        return mapCourse(course, {
+          paperCount: coursePapers.length,
+          years,
+        });
+      })
+      .sort((a, b) => a.name.localeCompare(b.name));
   }, getLocalCourses);
 }
 
 export async function getCourseBySlug(slug: string): Promise<Course | null> {
-  return withDbFallback(
+  return withFirebaseFallback(
     async () => {
-      const [rows] = await dbQuery<CourseRow[]>(
-        `SELECT * FROM courses WHERE slug = ? LIMIT 1`,
-        [slug]
-      );
-      return rows[0] ? mapCourse(rows[0]) : null;
+      const snap = await getDb().collection("courses").doc(slug).get();
+      if (!snap.exists) return null;
+      return mapCourse(snap.data() as CourseDoc);
     },
     async () => mockCourses.find((c) => c.slug === slug) ?? null
   );
 }
 
 export async function getPapersByCourseId(courseId: number): Promise<Paper[]> {
-  return withDbFallback(
+  return withFirebaseFallback(
     async () => {
-      const [rows] = await dbQuery<PaperRow[]>(
-        `SELECT * FROM papers
-         WHERE course_id = ? AND status = 'approved'
-         ORDER BY year DESC, exam_type ASC`,
-        [courseId]
-      );
-      return rows.map(mapPaper);
+      const snap = await getDb()
+        .collection("papers")
+        .where("courseId", "==", courseId)
+        .where("status", "==", "approved")
+        .get();
+      return snap.docs
+        .map((d) => mapPaper(d.data() as PaperDoc))
+        .sort((a, b) => b.year - a.year || a.title.localeCompare(b.title));
     },
     async () => {
       const papers = await getMockPapersMerged();
@@ -176,8 +166,26 @@ export async function getPapersByCourseId(courseId: number): Promise<Paper[]> {
 export async function getPaperById(
   id: number
 ): Promise<(Paper & { course?: Course }) | null> {
-  return withDbFallback(
-    async () => getPaperByIdFromDb(id),
+  return withFirebaseFallback(
+    async () => {
+      const snap = await getDb()
+        .collection("papers")
+        .where("id", "==", id)
+        .where("status", "==", "approved")
+        .limit(1)
+        .get();
+      if (snap.empty) return null;
+      const paper = mapPaper(snap.docs[0].data() as PaperDoc);
+      const courseSnap = await getDb()
+        .collection("courses")
+        .where("id", "==", paper.courseId)
+        .limit(1)
+        .get();
+      const course = courseSnap.empty
+        ? undefined
+        : mapCourse(courseSnap.docs[0].data() as CourseDoc);
+      return { ...paper, course };
+    },
     async () => {
       const papers = await getMockPapersMerged();
       const paper = papers.find((p) => p.id === id && p.status === "approved");
@@ -188,42 +196,43 @@ export async function getPaperById(
   );
 }
 
-async function getPaperByIdFromDb(
-  id: number
-): Promise<(Paper & { course?: Course }) | null> {
-  const [rows] = await dbQuery<
-    (PaperRow & {
-      c_id: number;
-      c_name: string;
-      c_code: string;
-      c_slug: string;
-      c_semester: number;
-      c_department: string;
-    })[]
-  >(
-    `SELECT p.*,
-            c.id AS c_id, c.name AS c_name, c.code AS c_code,
-            c.slug AS c_slug, c.semester AS c_semester,
-            c.department AS c_department
-     FROM papers p
-     JOIN courses c ON c.id = p.course_id
-     WHERE p.id = ? AND p.status = 'approved'
-     LIMIT 1`,
-    [id]
-  );
+export async function addFirebasePaper(input: {
+  courseId: number;
+  title: string;
+  year: number;
+  examType: ExamType;
+  fileUrl: string;
+}): Promise<number> {
+  const db = getDb();
+  const courseSnap = await db
+    .collection("courses")
+    .where("id", "==", input.courseId)
+    .limit(1)
+    .get();
+  if (courseSnap.empty) {
+    throw new Error("Course not found.");
+  }
 
-  const row = rows[0];
-  if (!row) return null;
+  const counterRef = db.collection("meta").doc("counters");
+  const nextId = await db.runTransaction(async (tx) => {
+    const counter = await tx.get(counterRef);
+    const current = Number(counter.data()?.nextPaperId ?? 100);
+    tx.set(counterRef, { nextPaperId: current + 1 }, { merge: true });
+    return current;
+  });
 
-  return {
-    ...mapPaper(row),
-    course: {
-      id: row.c_id,
-      name: row.c_name,
-      code: row.c_code,
-      slug: row.c_slug,
-      semester: row.c_semester,
-      department: row.c_department,
-    },
+  const paper: PaperDoc = {
+    id: nextId,
+    courseId: input.courseId,
+    title: input.title,
+    year: input.year,
+    examType: input.examType,
+    teacherId: null,
+    teacher: null,
+    fileUrl: input.fileUrl,
+    status: "approved",
   };
+
+  await db.collection("papers").doc(String(nextId)).set(paper);
+  return nextId;
 }

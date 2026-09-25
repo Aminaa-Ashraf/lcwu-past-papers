@@ -2,7 +2,7 @@
 
 Past papers for LCWU Computer Science (BSCS) — browse by course and exam year, download PDFs, upload new ones from Admin.
 
-46 courses from the 2023–27 scheme · Next.js + MySQL
+46 courses from the 2023–27 scheme · Next.js + Firebase
 
 ---
 
@@ -19,20 +19,19 @@ Past papers for LCWU Computer Science (BSCS) — browse by course and exam year,
 |-------|--------|
 | App | Next.js 16 (App Router), React 19 |
 | UI | Tailwind CSS 4 |
-| Database | MySQL (`mysql2`) |
-| Hosting | Vercel-ready |
+| Database | Firebase Firestore |
+| Files | Firebase Storage |
+| Hosting | Vercel |
 
 ## Run locally
 
 ```bash
 npm install
 cp .env.local.example .env.local
-npm run db:setup
-npm run db:seed-courses
+# add Firebase service account values
+npm run db:seed-firebase
 npm run dev
 ```
-
-Copy `.env.local.example` into `.env.local` and fill in your own database and admin settings (that file stays on your machine — it is not committed).
 
 Then open [http://localhost:3000](http://localhost:3000).
 

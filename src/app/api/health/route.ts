@@ -1,30 +1,18 @@
 import { NextResponse } from "next/server";
-import { isDatabaseConfigured, testConnection } from "@/lib/db";
+import { isFirebaseConfigured } from "@/lib/firebase-admin";
 
-/**
- * GET /api/health — quick check that the app / database are reachable.
- */
 export async function GET() {
-  if (!isDatabaseConfigured()) {
+  if (!isFirebaseConfigured()) {
     return NextResponse.json({
       ok: true,
-      mode: "mock",
-      message: "Running without DATABASE_URL (sample data mode).",
+      mode: "local",
+      message: "Running without Firebase credentials (local course list).",
     });
   }
 
-  try {
-    await testConnection();
-    return NextResponse.json({
-      ok: true,
-      mode: "mysql",
-      message: "Database connection OK.",
-    });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error";
-    return NextResponse.json(
-      { ok: false, mode: "mysql", message },
-      { status: 500 }
-    );
-  }
+  return NextResponse.json({
+    ok: true,
+    mode: "firebase",
+    message: "Firebase env is set.",
+  });
 }
