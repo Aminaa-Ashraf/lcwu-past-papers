@@ -2,7 +2,7 @@
 
 Past papers for LCWU Computer Science (BSCS) — browse by course and exam year, download PDFs, upload new ones from Admin.
 
-46 courses from the 2023–27 scheme · Next.js + Firebase
+Live: [lcwu-past-papers.vercel.app](https://lcwu-past-papers.vercel.app) · 46 courses from the 2023–27 scheme · Next.js + Firebase
 
 ---
 
@@ -34,6 +34,22 @@ npm run dev
 ```
 
 Then open [http://localhost:3000](http://localhost:3000).
+
+## Vercel
+
+Production is [lcwu-past-papers.vercel.app](https://lcwu-past-papers.vercel.app). Pushes to `main` deploy automatically.
+
+Set these in the Vercel project (Production / Preview / Development):
+
+| Name | Purpose |
+|------|---------|
+| `ADMIN_PASSWORD` | Admin upload page |
+| `FIREBASE_PROJECT_ID` | Firestore project |
+| `FIREBASE_CLIENT_EMAIL` | Admin SDK service account |
+| `FIREBASE_PRIVATE_KEY` | Admin SDK private key |
+| `FIREBASE_STORAGE_BUCKET` | New PDF uploads |
+
+The live app uses Firebase only.
 
 ## Pages
 
