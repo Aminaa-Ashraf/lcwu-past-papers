@@ -81,92 +81,116 @@ async function getMockTeachersMerged(): Promise<Teacher[]> {
   return [...byName.values()].sort((a, b) => a.name.localeCompare(b.name));
 }
 
-export async function getTeachers(): Promise<Teacher[]> {
+async function withDbFallback<T>(
+  dbFn: () => Promise<T>,
+  fallbackFn: () => Promise<T>
+): Promise<T> {
   if (!isDatabaseConfigured()) {
-    return getMockTeachersMerged();
+    return fallbackFn();
   }
+  try {
+    return await dbFn();
+  } catch (error) {
+    console.error("Database unavailable, using local data:", error);
+    return fallbackFn();
+  }
+}
 
-  const [rows] = await dbQuery<TeacherRow[]>(
-    `SELECT id, name FROM teachers ORDER BY name ASC`
-  );
-  return rows.map((r) => ({ id: r.id, name: r.name }));
+export async function getTeachers(): Promise<Teacher[]> {
+  return withDbFallback(async () => {
+    const [rows] = await dbQuery<TeacherRow[]>(
+      `SELECT id, name FROM teachers ORDER BY name ASC`
+    );
+    return rows.map((r) => ({ id: r.id, name: r.name }));
+  }, getMockTeachersMerged);
+}
+
+async function getLocalCourses(): Promise<Course[]> {
+  const papers = await getMockPapersMerged();
+  return mockCourses
+    .map((c) => {
+      const coursePapers = papers.filter(
+        (p) => p.courseId === c.id && p.status === "approved"
+      );
+      const years = [...new Set(coursePapers.map((p) => p.year))].sort(
+        (a, b) => b - a
+      );
+      return {
+        ...c,
+        paperCount: coursePapers.length,
+        years,
+      };
+    })
+    .sort((a, b) => a.name.localeCompare(b.name));
 }
 
 export async function getCourses(): Promise<Course[]> {
-  if (!isDatabaseConfigured()) {
-    const papers = await getMockPapersMerged();
-    return mockCourses
-      .map((c) => {
-        const coursePapers = papers.filter(
-          (p) => p.courseId === c.id && p.status === "approved"
-        );
-        const years = [...new Set(coursePapers.map((p) => p.year))].sort(
-          (a, b) => b - a
-        );
-        return {
-          ...c,
-          paperCount: coursePapers.length,
-          years,
-        };
-      })
-      .sort((a, b) => a.name.localeCompare(b.name));
-  }
-
-  const [rows] = await dbQuery<CourseRow[]>(
-    `SELECT c.*,
-            COUNT(p.id) AS paper_count,
-            GROUP_CONCAT(DISTINCT p.year ORDER BY p.year DESC) AS years
-     FROM courses c
-     LEFT JOIN papers p
-       ON p.course_id = c.id AND p.status = 'approved'
-     GROUP BY c.id
-     ORDER BY c.name ASC`
-  );
-
-  return rows.map(mapCourse);
+  return withDbFallback(async () => {
+    const [rows] = await dbQuery<CourseRow[]>(
+      `SELECT c.*,
+              COUNT(p.id) AS paper_count,
+              GROUP_CONCAT(DISTINCT p.year ORDER BY p.year DESC) AS years
+       FROM courses c
+       LEFT JOIN papers p
+         ON p.course_id = c.id AND p.status = 'approved'
+       GROUP BY c.id
+       ORDER BY c.name ASC`
+    );
+    return rows.map(mapCourse);
+  }, getLocalCourses);
 }
 
 export async function getCourseBySlug(slug: string): Promise<Course | null> {
-  if (!isDatabaseConfigured()) {
-    return mockCourses.find((c) => c.slug === slug) ?? null;
-  }
-
-  const [rows] = await dbQuery<CourseRow[]>(
-    `SELECT * FROM courses WHERE slug = ? LIMIT 1`,
-    [slug]
+  return withDbFallback(
+    async () => {
+      const [rows] = await dbQuery<CourseRow[]>(
+        `SELECT * FROM courses WHERE slug = ? LIMIT 1`,
+        [slug]
+      );
+      return rows[0] ? mapCourse(rows[0]) : null;
+    },
+    async () => mockCourses.find((c) => c.slug === slug) ?? null
   );
-  return rows[0] ? mapCourse(rows[0]) : null;
 }
 
 export async function getPapersByCourseId(courseId: number): Promise<Paper[]> {
-  if (!isDatabaseConfigured()) {
-    const papers = await getMockPapersMerged();
-    return papers
-      .filter((p) => p.courseId === courseId && p.status === "approved")
-      .sort((a, b) => b.year - a.year || a.title.localeCompare(b.title));
-  }
-
-  const [rows] = await dbQuery<PaperRow[]>(
-    `SELECT * FROM papers
-     WHERE course_id = ? AND status = 'approved'
-     ORDER BY year DESC, exam_type ASC`,
-    [courseId]
+  return withDbFallback(
+    async () => {
+      const [rows] = await dbQuery<PaperRow[]>(
+        `SELECT * FROM papers
+         WHERE course_id = ? AND status = 'approved'
+         ORDER BY year DESC, exam_type ASC`,
+        [courseId]
+      );
+      return rows.map(mapPaper);
+    },
+    async () => {
+      const papers = await getMockPapersMerged();
+      return papers
+        .filter((p) => p.courseId === courseId && p.status === "approved")
+        .sort((a, b) => b.year - a.year || a.title.localeCompare(b.title));
+    }
   );
-
-  return rows.map(mapPaper);
 }
 
 export async function getPaperById(
   id: number
 ): Promise<(Paper & { course?: Course }) | null> {
-  if (!isDatabaseConfigured()) {
-    const papers = await getMockPapersMerged();
-    const paper = papers.find((p) => p.id === id && p.status === "approved");
-    if (!paper) return null;
-    const course = mockCourses.find((c) => c.id === paper.courseId);
-    return { ...paper, course };
-  }
+  return withDbFallback(
+    async () => getPaperByIdFromDb(id),
+    async () => {
+      const papers = await getMockPapersMerged();
+      const paper = papers.find((p) => p.id === id && p.status === "approved");
+      if (!paper) return null;
+      const course = mockCourses.find((c) => c.id === paper.courseId);
+      return { ...paper, course };
+    }
+  );
+}
 
+async function getPaperByIdFromDb(
+  id: number
+): Promise<(Paper & { course?: Course }) | null> {
   const [rows] = await dbQuery<
     (PaperRow & {
       c_id: number;

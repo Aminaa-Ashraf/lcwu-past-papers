@@ -102,9 +102,12 @@ function isRetryableDbError(error: unknown): boolean {
     code === "ECONNRESET" ||
     code === "ECONNREFUSED" ||
     code === "ETIMEDOUT" ||
+    code === "ENOTFOUND" ||
+    code === "EAI_AGAIN" ||
     code === "PROTOCOL_CONNECTION_LOST" ||
     code === "PROTOCOL_ENQUEUE_AFTER_FATAL_ERROR" ||
     message.includes("ECONNRESET") ||
+    message.includes("ENOTFOUND") ||
     message.includes("Connection lost") ||
     message.includes("Pool is closed")
   );
